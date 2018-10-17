@@ -1,0 +1,90 @@
+package me.zakarls.zach;
+
+import org.bukkit.ChatColor;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+public class MyPlayerListener
+  implements Listener
+{
+  public static Zach plugin;
+  
+  @EventHandler
+  public void onPlayerChat(PlayerChatEvent event)
+  {
+    Player player = event.getPlayer();
+    World world = player.getWorld();
+    if (event.getMessage().toLowerCase().contains("heal"))
+    {
+      player.setHealth(20.0D);
+      player.setFoodLevel(20);
+      player.setFireTicks(0);
+      player.sendMessage(ChatColor.DARK_AQUA + "You Have Been Healed");
+    }
+    else if (event.getMessage().toLowerCase().contains("kill"))
+    {
+      try
+      {
+        Thread.sleep(500L);
+      }
+      catch (InterruptedException e)
+      {
+        e.printStackTrace();
+      }
+      player.setHealth(0.0D);
+      player.sendMessage(ChatColor.DARK_RED + "You Died");
+    }
+    else if (event.getMessage().toLowerCase().contains("sendme"))
+    {
+      player.sendMessage("Send You");
+    }
+    else if (event.getMessage().toLowerCase().contains("fire"))
+    {
+      player.setFireTicks(100);
+      player.sendMessage(ChatColor.DARK_RED + "Flames Come Upon You..." + ChatColor.DARK_RED + ChatColor.BOLD + "FLAMES");
+    }
+    if (player.isOp()) {
+      if (event.getMessage().toLowerCase().contains("pvp off"))
+      {
+        world.setPVP(false);
+        player.sendMessage("Pvp is now turned off for world: " + player.getWorld().getName());
+      }
+      else if (event.getMessage().toLowerCase().contains("pvp on"))
+      {
+        world.setPVP(true);
+        player.sendMessage("Pvp is now turned on for world: " + player.getWorld().getName());
+      }
+      else if (event.getMessage().toLowerCase().contains("sun"))
+      {
+        world.setStorm(false);
+        player.sendMessage(ChatColor.GOLD + "It Is Now Sunny.");
+      }
+      else if (event.getMessage().toLowerCase().contains("rain"))
+      {
+        world.setStorm(true);
+        player.sendMessage(ChatColor.GOLD + "It Is Now Rainy.");
+      }
+      else if (event.getMessage().toLowerCase().contains("day"))
+      {
+        world.setTime(1000L);
+        player.sendMessage(ChatColor.GOLD + "It Is Now Day.");
+      }
+      else if (event.getMessage().toLowerCase().contains("night"))
+      {
+        world.setTime(15000L);
+        player.sendMessage(ChatColor.GOLD + "It Is Now Night.");
+      }
+    }
+  }
+  
+  @EventHandler
+  public void onPlayerJoin(PlayerJoinEvent event)
+  {
+    Player player = event.getPlayer();
+    event.setJoinMessage(ChatColor.GOLD + "Hello " + player.getName() + ". Welcome to " + ChatColor.GOLD + ChatColor.BOLD + "Adventure Land. " + ChatColor.RESET + ChatColor.GOLD + "You are in the world: " + player.getWorld().getName() + ". It is " + player.getWorld().getTime());
+  }
+}
