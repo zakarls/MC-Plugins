@@ -1,0 +1,265 @@
+package me.zakarls.zach;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.FileConfigurationOptions;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+
+public class Zach
+  extends JavaPlugin
+{
+  public final Logger logger = Logger.getLogger("Minecraft");
+  public static Zach plugin;
+  public final MyBlockListener bl = new MyBlockListener();
+  public final MyPlayerListener pl = new MyPlayerListener();
+  public int numberone = 3;
+  public final HashMap<Player, ArrayList<Block>> hashmap = new HashMap();
+  
+  public void onDisable()
+  {
+    PluginDescriptionFile pdfFile = getDescription();
+    this.logger.info(pdfFile.getName() + " Has Been Disabled!");
+  }
+  
+  public void onEnable()
+  {
+    PluginDescriptionFile pdfFile = getDescription();
+    this.logger.info(pdfFile.getName() + " Version " + pdfFile.getVersion() + " Has Been Enabled!");
+    PluginManager pm = getServer().getPluginManager();
+    pm.registerEvents(this.bl, this);
+    pm.registerEvents(this.pl, this);
+    getConfig().options().copyDefaults(true);
+    saveConfig();
+  }
+  
+  public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
+  {
+    Player player = (Player)sender;
+    World world = player.getWorld();
+    if (commandLabel.equalsIgnoreCase("sendme")) {
+      player.sendMessage(ChatColor.GOLD + "Sent");
+    }
+    if ((commandLabel.equalsIgnoreCase("zach")) || (commandLabel.equalsIgnoreCase("z")) || (commandLabel.equalsIgnoreCase("heal"))) {
+      if (args.length == 0)
+      {
+        player.setHealth(20.0D);
+        player.setFireTicks(0);
+        player.sendMessage(ChatColor.GREEN + "Healed");
+      }
+      else if (args.length == 1)
+      {
+        if (player.getServer().getPlayer(args[0]) != null)
+        {
+          Player targetPlayer = player.getServer().getPlayer(args[0]);
+          targetPlayer.setHealth(20.0D);
+          targetPlayer.setFireTicks(0);
+          player.sendMessage(targetPlayer.getDisplayName() + ChatColor.GREEN + " Has Been Healed");
+          targetPlayer.sendMessage(ChatColor.GREEN + "You Have Been Healed By " + player.getDisplayName());
+        }
+      }
+      else
+      {
+        player.sendMessage(ChatColor.DARK_RED + "PLAYER NOT ONLINE");
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("zport")) {
+      if (args.length == 0)
+      {
+        player.sendMessage(ChatColor.DARK_RED + "Too Little Arguments");
+      }
+      else if (args.length == 1)
+      {
+        Player targetPlayer = player.getServer().getPlayer(args[0]);
+        Location targetPlayerLocation = targetPlayer.getLocation();
+        player.teleport(targetPlayerLocation);
+      }
+      else if (args.length == 2)
+      {
+        Player targetPlayer = player.getServer().getPlayer(args[0]);
+        Player targetPlayer1 = player.getServer().getPlayer(args[1]);
+        Location targetPlayer1Location = targetPlayer.getLocation();
+        targetPlayer.teleport(targetPlayer1Location);
+        player.sendMessage(targetPlayer.getDisplayName() + ChatColor.GOLD + " Has Been Teleported To " + targetPlayer1.getDisplayName());
+        targetPlayer.sendMessage(ChatColor.GOLD + "You Have Been Teleported To " + targetPlayer1.getDisplayName() + ChatColor.GOLD + " By " + player.getDisplayName());
+        targetPlayer1.sendMessage(targetPlayer.getDisplayName() + ChatColor.GOLD + " Has Been Teleported To You By " + player.getDisplayName());
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("armor"))
+    {
+      ItemStack helm = new ItemStack(Material.DIAMOND_HELMET, 1);
+      ItemStack chest = new ItemStack(Material.DIAMOND_CHESTPLATE, 1);
+      ItemStack pants = new ItemStack(Material.DIAMOND_LEGGINGS, 1);
+      ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS, 1);
+      ItemStack sword = new ItemStack(Material.DIAMOND_SWORD, 1);
+      PlayerInventory pi = player.getInventory();
+      pi.setHelmet(helm);
+      pi.setChestplate(chest);
+      pi.setLeggings(pants);
+      pi.setBoots(boots);
+      pi.setItemInHand(sword);
+    }
+    if (commandLabel.equalsIgnoreCase("fly")) {
+      if (!player.getAllowFlight())
+      {
+        player.setAllowFlight(true);
+        player.sendMessage(ChatColor.GOLD + "You Are Now Able To Fly");
+      }
+      else if (player.getAllowFlight())
+      {
+        player.setAllowFlight(false);
+        player.sendMessage(ChatColor.GOLD + "You Are No Longer Able To Fly");
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("hashmap")) {
+      if (this.hashmap.containsKey(player)) {
+        this.hashmap.remove(player);
+      } else {
+        this.hashmap.put(player, null);
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("check")) {
+      if (this.hashmap.containsKey(player)) {
+        player.sendMessage(ChatColor.RED + "You Are In The Hashmap");
+      } else {
+        player.sendMessage(ChatColor.RED + "You Are Not In The Hashmap");
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("gm")) {
+      if (args[0].equalsIgnoreCase("1"))
+      {
+        player.setGameMode(GameMode.CREATIVE);
+        player.sendMessage(ChatColor.GOLD + "Gamemode Set To Creative");
+      }
+      else if (args[0].equalsIgnoreCase("0"))
+      {
+        player.setGameMode(GameMode.SURVIVAL);
+        player.sendMessage(ChatColor.GOLD + "Gamemode Set To Survival");
+      }
+      else if (args[0].equalsIgnoreCase("2"))
+      {
+        player.setGameMode(GameMode.ADVENTURE);
+        player.sendMessage(ChatColor.GOLD + "Gamemode Set To Adventure");
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("zporthere")) {
+      if (args.length == 0)
+      {
+        player.sendMessage(ChatColor.DARK_RED + "Too Little Arguments");
+      }
+      else if (args.length == 1)
+      {
+        Player targetPlayer = player.getServer().getPlayer(args[0]);
+        Location playerLocation = player.getLocation();
+        player.sendMessage(targetPlayer.getDisplayName() + ChatColor.GOLD + " Has Been Teleported To You");
+        targetPlayer.teleport(playerLocation);
+        targetPlayer.sendMessage(player.getDisplayName() + ChatColor.GOLD + " Teleported You To Them");
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("flip"))
+    {
+      Random object = new Random();
+      for (int counter = 1; counter <= 1; counter++)
+      {
+        int zach = 1 + object.nextInt(2);
+        if (zach == 1) {
+          player.sendMessage(ChatColor.GOLD + getConfig().getString("One"));
+        } else if (zach == 2) {
+          player.sendMessage(ChatColor.RED + getConfig().getString("Two"));
+        }
+      }
+    }
+    if ((commandLabel.equalsIgnoreCase("jump")) || (commandLabel.equalsIgnoreCase("j")))
+    {
+      Block block = player.getTargetBlock(null, 200);
+      Location location = block.getLocation();
+      player.teleport(location);
+    }
+    if (commandLabel.equalsIgnoreCase("tellme")) {
+      player.sendMessage(getConfig().getString("tellme"));
+    }
+    if ((player.isOp()) && 
+      (commandLabel.equalsIgnoreCase("ko"))) {
+      killAllPlayers(getConfig().getInt("Health"));
+    }
+    if (commandLabel.equalsIgnoreCase("time")) {
+      if (args[0].equalsIgnoreCase("day"))
+      {
+        world.setTime(0L);
+        player.sendMessage(ChatColor.GOLD + "It is now Day");
+      }
+      else if (args[0].equalsIgnoreCase("night"))
+      {
+        world.setTime(13000L);
+        player.sendMessage(ChatColor.GOLD + "It is now Night");
+      }
+    }
+    if (commandLabel.equalsIgnoreCase("timer")) {
+      getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable()
+      {
+        public void run()
+        {
+          if (Zach.this.numberone != -1) {
+            if (Zach.this.numberone != 0)
+            {
+              Bukkit.broadcastMessage(Zach.this.numberone);
+              Zach.this.numberone -= 1;
+            }
+            else
+            {
+              Bukkit.broadcastMessage(ChatColor.GOLD + "Times Up!");
+              Zach.this.numberone -= 1;
+            }
+          }
+        }
+      }, 0L, 20L);
+    }
+    if (commandLabel.equalsIgnoreCase("motd")) {
+      player.sendMessage("MOTD: " + getConfig().getString("MOTD").replace("%w", player.getWorld().getName()).replaceAll("&4", new StringBuilder().append(ChatColor.RED).toString()));
+    }
+    return false;
+  }
+  
+  public void killAllPlayers(int x)
+  {
+    List<Player> onlinePlayerList = Arrays.asList(Bukkit.getServer().getOnlinePlayers());
+    Iterator<Player> itr = onlinePlayerList.iterator();
+    while (itr.hasNext())
+    {
+      Player player = (Player)itr.next();
+      player.setHealth(x);
+    }
+  }
+  
+  public void killAllPlayers()
+  {
+    List<Player> onlinePlayerList = Arrays.asList(Bukkit.getServer().getOnlinePlayers());
+    Iterator<Player> itr = onlinePlayerList.iterator();
+    while (itr.hasNext())
+    {
+      Player player = (Player)itr.next();
+      player.setHealth(0.0D);
+    }
+  }
+}
