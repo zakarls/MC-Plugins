@@ -1,0 +1,99 @@
+package me.zakarls.EasterEgg;
+
+import java.util.Random;
+import java.util.logging.Logger;
+import org.bukkit.Location;
+import org.bukkit.Server;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
+
+public class Main
+  extends JavaPlugin
+  implements Listener
+{
+  boolean raining = false;
+  
+  public void onDisable()
+  {
+    PluginDescriptionFile pdfFile = getDescription();
+    getLogger().info(pdfFile.getName() + " Has Been Disabled!");
+  }
+  
+  public void onEnable()
+  {
+    PluginManager pm = getServer().getPluginManager();
+    pm.registerEvents(this, this);
+    PluginDescriptionFile pdfFile = getDescription();
+    getLogger().info(pdfFile.getName() + " Version " + pdfFile.getVersion() + 
+      " Has Been Enabled!");
+  }
+  
+  @EventHandler
+  public void onPlayerChat(PlayerChatEvent event)
+  {
+    String msg = event.getMessage();
+    if ((msg.contains("egg")) && (!this.raining)) {
+      rainEgg(event.getPlayer(), EntityType.EGG);
+    }
+    if ((msg.contains("snow")) && (!this.raining)) {
+      rainEgg(event.getPlayer(), EntityType.SNOWBALL);
+    }
+  }
+  
+  @EventHandler
+  public void onChickenSpawn(CreatureSpawnEvent event)
+  {
+    if ((event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.EGG) && (this.raining)) {
+      event.setCancelled(true);
+    } else {}
+  }
+  
+  public void rainEgg(Player p, EntityType et)
+  {
+    this.raining = true;
+    Location loc = p.getLocation();
+    
+    Vector v = null;
+    Double minX = Double.valueOf(loc.getX() - 20.0D);
+    Double minZ = Double.valueOf(loc.getZ() - 20.0D);
+    Double maxX = Double.valueOf(loc.getX() + 20.0D);
+    Double maxZ = Double.valueOf(loc.getZ() + 20.0D);
+    for (int i = 0; i < 1000; i++)
+    {
+      Random rand = new Random();
+      Location loc2 = loc;
+      loc2.setX(rand.nextInt(maxX.intValue() - minX.intValue()) + minX.intValue());
+      loc2.setZ(rand.nextInt(maxZ.intValue() - minZ.intValue()) + minZ.intValue());
+      int randZ = rand.nextInt(41) + 0;
+      loc2.setY(256.0D);
+      Entity e = loc2.getWorld().spawnEntity(loc2, et);
+      v = e.getVelocity();
+      v.setY(randZ / 10.0D);
+      e.setVelocity(v);
+    }
+    killChickens();
+  }
+  
+  public void killChickens()
+  {
+    getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
+    {
+      public void run()
+      {
+        Main.this.raining = false;
+      }
+    }, 400L);
+  }
+}
